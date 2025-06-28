@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Good chat</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0; /* Lighter slate blue for background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .chat-container {
+            max-width: 800px;
+            width: 100%;
+            height: 90vh; /* Increased height for better view */
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.05); /* Stronger shadow */
+            overflow: hidden;
+        }
+        .chat-header {
+            background: linear-gradient(to right, #4F46E5, #3B82F6); /* Indigo to Blue gradient */
+            color: white;
+            text-align: center;
+            padding: 1.5rem; /* More padding */
+            font-size: 2rem; /* Larger font */
+            font-weight: 700; /* Bolder font */
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .username-input-area {
+            background-color: #f8fafc; /* Light gray for input area */
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+            box-shadow: inset 0 -1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .username-input-area input {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem; /* Rounded input */
+            border: 1px solid #cbd5e1; /* Gray-300 */
+            transition: all 0.2s ease-in-out;
+        }
+        .username-input-area input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .username-input-area button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem; /* More space between messages */
+            background-color: #fdfdfd;
+        }
+        .message-bubble {
+            max-width: 75%; /* Slightly wider bubbles */
+            padding: 0.9rem 1.25rem;
+            border-radius: 1.25rem; /* More rounded */
+            word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            animation: fadeInSlideUp 0.3s ease-out; /* Animation for new messages */
+            position: relative; /* Needed for kick button positioning */
+        }
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .own-message {
+            align-self: flex-end;
+            background-color: #4F46E5; /* Indigo-600 */
+            color: white;
+            border-bottom-right-radius: 0.5rem; /* Tapered corner for own message */
+        }
+        .other-message {
+            align-self: flex-start;
+            background-color: #f3f4f6; /* Gray-100 */
+            color: #1f2937; /* Darker text */
+            border-bottom-left-radius: 0.5rem; /* Tapered corner for other message */
+        }
+        .message-sender {
+            font-size: 0.8rem; /* Smaller sender name */
+            font-weight: 600;
+            color: #6b7280; /* Gray-500 */
+            margin-bottom: 0.25rem;
+            display: flex; /* To align name and kick button */
+            align-items: center;
+            justify-content: space-between; /* Push kick button to right */
+        }
+        .own-message .message-sender {
+             color: rgba(255, 255, 255, 0.7); /* Lighter for own messages */
+        }
+
+        .input-area {
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 0.75rem; /* More space between input and button */
+            background-color: #f8fafc;
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+        }
+        .input-area input {
+            flex-grow: 1;
+            padding: 1rem 1.25rem; /* Larger input */
+            border-radius: 1rem;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .input-area input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+        }
+        .input-area button {
+            padding: 1rem 2rem; /* Larger button */
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            border-radius: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .input-area button:hover {
+            background-color: #2563eb; /* Darker blue on hover */
+            transform: translateY(-1px); /* Slight lift */
+        }
+        .input-area button:active {
+            transform: translateY(0); /* Press effect */
+        }
+        .user-id-display {
+            background-color: #e0f7fa; /* Even lighter blue */
+            color: #00796b; /* Teal dark */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem; /* Slightly larger text */
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping for long IDs */
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .user-id-display span {
+            word-break: break-all; /* Break long IDs */
+        }
+        .kicked-message-alert {
+            background-color: #fee2e2; /* Red-100 */
+            color: #b91c1c; /* Red-700 */
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            Good chat
+        </div>
+
+        <!-- Username Input Area -->
+        <div id="usernameInputArea" class="username-input-area">
+            <span class="text-gray-700 font-medium text-lg">Set Your Display Name:</span>
+            <div class="flex flex-col sm:flex-row w-full gap-3">
+                <input type="text" id="usernameInput" placeholder="e.g., JaneDoe"
+                       class="w-full text-center sm:text-left">
+                <button id="setUsernameBtn"
+                        class="bg-green-500 text-white hover:bg-green-600">
+                    Set Name
+                </button>
+            </div>
+        </div>
+
+        <!-- User ID/Name Display -->
+        <div class="flex justify-center p-4">
+            <div id="userNameAndIdDisplay" class="user-id-display hidden">
+                You are: <span id="currentUserName" class="font-bold ml-1 mr-1"></span> (<span id="currentUserId" class="font-bold">Loading...</span>)
+            </div>
+        </div>
+
+        <div id="messages" class="messages">
+            <!-- Chat messages will be loaded here -->
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Type your message..."
+                   class="shadow-sm">
+            <button id="sendMessageBtn" class="shadow-lg">
+                Send
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-analytics.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        // This configuration will be replaced by the Canvas environment's __firebase_config if available.
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : {
+                apiKey: "AIzaSyADjILa4ROGbVMBeh05oir10w49P1eUzpQ",
+                authDomain: "chat-743f9.firebaseapp.com",
+                projectId: "chat-743f9",
+                storageBucket: "chat-743f9.firebasestorage.app",
+                messagingSenderId: "327002372462",
+                appId: "1:327002372462:web:75bd4b7f6c1906825c297f",
+                measurementId: "G-EPHNPSCYLS"
+            };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app); // Initialize analytics
+
+        // Firebase services (re-declared for clarity and global access within this script)
+        let db;
+        let auth;
+
+        // General app variables
+        // Use projectId from firebaseConfig as the primary appId
+        const appId = firebaseConfig.projectId; 
+        let userId = 'anonymous'; // Default until authenticated
+        let userName = localStorage.getItem('chatUsername') || null; // Load username from local storage
+        let isAuthReady = false; // Flag to ensure Firestore operations wait for auth
+        const ADMIN_USERNAME = "hiitoin"; // The special username for admin
+        let kickedUsersList = []; // List of user IDs that are "kicked"
+
+        /**
+         * Initializes Firebase and authenticates the user.
+         * Sets up real-time listener for chat messages and kicked users after authentication.
+         */
+        async function initFirebaseAndAuth() {
+            try {
+                // Assign initialized services to global variables
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        console.log("Signed in with custom token.");
+                    } catch (customTokenError) {
+                        console.warn("Custom token authentication failed, falling back to anonymous sign-in:", customTokenError);
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously due to custom token error.");
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("User authenticated:", userId);
+                        updateUserDisplay(); // Update display with userId and possibly userName
+                        isAuthReady = true;
+                        setupChatListener();
+                        setupKickedUsersListener(); // Start listening for kicked users
+                    } else {
+                        console.log("No user is signed in.");
+                        userId = 'anonymous';
+                        updateUserDisplay();
+                        isAuthReady = true;
+                    }
+                });
+
+                // Check and set username display on initial load
+                if (userName) {
+                    document.getElementById('usernameInputArea').classList.add('hidden');
+                } else {
+                    document.getElementById('usernameInputArea').classList.remove('hidden');
+                }
+                updateUserDisplay(); // Initial display update
+            } catch (error) {
+                console.error("Error initializing Firebase or authenticating:", error);
+                document.getElementById('messages').innerHTML = `<div class="text-red-500 text-center">Error: ${error.message}</div>`;
+            }
+        }
+
+        /**
+         * Updates the user's name and ID display in the UI.
+         */
+        function updateUserDisplay() {
+            const userNameDisplay = document.getElementById('currentUserName');
+            const userIdDisplayElem = document.getElementById('currentUserId');
+            const fullDisplayNameDiv = document.getElementById('userNameAndIdDisplay');
+
+            let displayUserName = userName;
+            if (userName === ADMIN_USERNAME) {
+                displayUserName = 'Admin';
+            }
+
+            if (userName) {
+                userNameDisplay.textContent = displayUserName;
+                userIdDisplayElem.textContent = userId;
+                fullDisplayNameDiv.classList.remove('hidden');
+            } else {
+                userNameDisplay.textContent = 'Anonymous';
+                userIdDisplayElem.textContent = userId;
+                fullDisplayNameDiv.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Sets up a real-time listener for the list of kicked users from Firestore.
+         */
+        function setupKickedUsersListener() {
+            if (!isAuthReady || !db) {
+                console.warn("Firestore not ready or db not initialized for kicked users listener.");
+                return;
+            }
+            // Use the projectId from firebaseConfig as the base for appId
+            const currentAppId = firebaseConfig.projectId;
+            const kickedUsersDocRef = doc(db, `artifacts/${currentAppId}/public/data/adminControls`, 'kickedUsers');
+
+            onSnapshot(kickedUsersDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    kickedUsersList = docSnap.data().kickedUserIds || [];
+                } else {
+                    kickedUsersList = []; // Document doesn't exist, no kicked users
+                }
+                console.log("Kicked users list updated:", kickedUsersList);
+
+                // If the current user is kicked, notify them and disable sending
+                if (kickedUsersList.includes(userId)) {
+                    document.getElementById('messages').insertAdjacentHTML('beforeend',
+                        `<div class="kicked-message-alert">You have been kicked and cannot send messages.</div>`
+                    );
+                    document.getElementById('messageInput').disabled = true;
+                    document.getElementById('sendMessageBtn').disabled = true;
+                } else {
+                    document.getElementById('messageInput').disabled = false;
+                    document.getElementById('sendMessageBtn').disabled = false;
+                }
+                // Re-render chat to hide messages from newly kicked users if already loaded
+                setupChatListener(); // Re-trigger chat listener to filter messages based on new kicked list
+            }, (error) => {
+                console.error("Error getting kicked users list:", error);
+            });
+        }
+
+        /**
+         * Toggles a user's kick status in Firestore.
+         * @param {string} targetUserId - The ID of the user to kick/unkick.
+         * @param {boolean} shouldKick - True to kick, false to unkick.
+         */
+        async function toggleKickUser(targetUserId, shouldKick) {
+            if (!isAuthReady || !db || userName !== ADMIN_USERNAME) {
+                console.warn("Not authorized to perform kick/unkick action.");
+                return;
+            }
+            // Cannot kick self
+            if (targetUserId === userId && shouldKick) { // Only prevent kicking self, unkicking self is fine
+                console.warn("Admin cannot kick themselves.");
+                return;
+            }
+
+            const currentAppId = firebaseConfig.projectId;
+            const kickedUsersDocRef = doc(db, `artifacts/${currentAppId}/public/data/adminControls`, 'kickedUsers');
+            let updatedKickedUsers = [...kickedUsersList]; // Create a copy
+
+            if (shouldKick && !updatedKickedUsers.includes(targetUserId)) {
+                // Kick user if not already kicked
+                updatedKickedUsers.push(targetUserId);
+                console.log(`Kicking user: ${targetUserId}`);
+            } else if (!shouldKick && updatedKickedUsers.includes(targetUserId)) {
+                // Unkick user if currently kicked
+                updatedKickedUsers = updatedKickedUsers.filter(id => id !== targetUserId);
+                console.log(`Unkicking user: ${targetUserId}`);
+            } else {
+                console.log(`User ${targetUserId} already in desired state (kicked: ${shouldKick}). No change needed.`);
+                return; // No change needed if user is already in the target state
+            }
+
+            try {
+                await setDoc(kickedUsersDocRef, { kickedUserIds: updatedKickedUsers }, { merge: true });
+                console.log("Kicked users list updated in Firestore.");
+            } catch (error) {
+                console.error("Error toggling kick status:", error);
+            }
+        }
+
+
+        /**
+         * Sets up a real-time listener for chat messages from Firestore.
+         */
+        function setupChatListener() {
+            if (!isAuthReady || !db) {
+                console.warn("Firestore not ready or db not initialized for chat listener.");
+                return;
+            }
+            const currentAppId = firebaseConfig.projectId;
+            const messagesCollectionRef = collection(db, `artifacts/${currentAppId}/public/data/messages`);
+            const q = query(messagesCollectionRef, orderBy('timestamp', 'asc'));
+
+            onSnapshot(q, (snapshot) => {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const messageData = doc.data();
+                    const senderId = messageData.userId;
+
+                    // Filter out messages from kicked users
+                    if (kickedUsersList.includes(senderId)) {
+                        return; // Skip this message
+                    }
+
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message-bubble');
+
+                    let displaySenderName = messageData.username || 'Anonymous';
+                    // If current user is admin, display full ID for other users
+                    if (userName === ADMIN_USERNAME && senderId !== userId) {
+                         displaySenderName = `${messageData.username || 'Anonymous'} (${senderId})`;
+                    } else if (messageData.username === ADMIN_USERNAME) {
+                        displaySenderName = 'Admin';
+                    }
+
+
+                    if (senderId === userId) { // Check against current user's actual userId
+                        messageElement.classList.add('own-message');
+                        messageElement.innerHTML = `<div class="message-sender">You</div>${messageData.text}`;
+                    } else {
+                        messageElement.classList.add('other-message');
+                        let senderInfoHtml = `<div class="message-sender"><span>${displaySenderName}</span>`;
+                        senderInfoHtml += `</div>${messageData.text}`;
+                        messageElement.innerHTML = senderInfoHtml;
+                    }
+                    messagesDiv.appendChild(messageElement);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, (error) => {
+                console.error("Error getting messages:", error);
+                document.getElementById('messages').innerHTML = `<div class="text-red-500 text-center">Failed to load messages: ${error.message}</div>`;
+            });
+        }
+
+        /**
+         * Sends a new message to Firestore, or processes a command.
+         */
+        async function sendMessage(messageText) {
+            if (!isAuthReady || !db) {
+                console.warn("Firestore not ready or db not initialized. Cannot send message.");
+                return;
+            }
+
+            const trimmedMessage = messageText.trim();
+            if (!trimmedMessage) {
+                console.log("Message is empty, not sending.");
+                return;
+            }
+
+            // Check for admin commands
+            if (userName === ADMIN_USERNAME) {
+                if (trimmedMessage.startsWith('/kick ')) {
+                    const parts = trimmedMessage.split(' ');
+                    if (parts.length > 1) {
+                        const targetUserId = parts[1];
+                        await toggleKickUser(targetUserId, true); // True to kick
+                        document.getElementById('messageInput').value = ''; // Clear input
+                    } else {
+                        console.warn("Usage: /kick [userId]");
+                    }
+                    return; // Do not send command as a regular message
+                } else if (trimmedMessage.startsWith('/unkick ')) {
+                    const parts = trimmedMessage.split(' ');
+                    if (parts.length > 1) {
+                        const targetUserId = parts[1];
+                        await toggleKickUser(targetUserId, false); // False to unkick
+                        document.getElementById('messageInput').value = ''; // Clear input
+                    } else {
+                        console.warn("Usage: /unkick [userId]");
+                    }
+                    return; // Do not send command as a regular message
+                }
+            }
+
+
+            // Prevent sending if the current user is kicked
+            if (kickedUsersList.includes(userId)) {
+                 document.getElementById('messages').insertAdjacentHTML('beforeend',
+                    `<div class="kicked-message-alert">You are kicked and cannot send messages.</div>`
+                );
+                document.getElementById('messageInput').value = ''; // Clear input
+                console.warn("Cannot send message: You are currently kicked.");
+                return;
+            }
+
+            // Ensure a username is set before sending, or prompt the user
+            if (!userName) {
+                document.getElementById('usernameInputArea').classList.remove('hidden');
+                document.getElementById('usernameInput').focus();
+                console.warn("Please set your display name before sending messages.");
+                return;
+            }
+
+            try {
+                const currentAppId = firebaseConfig.projectId;
+                await addDoc(collection(db, `artifacts/${currentAppId}/public/data/messages`), {
+                    text: trimmedMessage,
+                    userId: userId,
+                    username: userName, // Include the current userName
+                    timestamp: serverTimestamp()
+                });
+                console.log("Message sent!");
+                document.getElementById('messageInput').value = '';
+            } catch (error) {
+                console.error("Error sending message:", error);
+            }
+        }
+
+        // Event listener for the "Set Name" button
+        document.getElementById('setUsernameBtn').addEventListener('click', () => {
+            const inputElement = document.getElementById('usernameInput');
+            const inputName = inputElement.value.trim();
+            if (inputName) {
+                userName = inputName;
+                localStorage.setItem('chatUsername', userName);
+                document.getElementById('usernameInputArea').classList.add('hidden');
+                updateUserDisplay();
+                console.log("Username set to:", userName);
+            } else {
+                console.warn("Username cannot be empty.");
+                inputElement.focus();
+            }
+        });
+
+        // Event listener for the send message button
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+            const messageInput = document.getElementById('messageInput');
+            sendMessage(messageInput.value);
+        });
+
+        // Event listener for pressing Enter key in the message input field
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage(e.target.value);
+            }
+        });
+
+        // Initialize Firebase and authentication when the window loads
+        window.onload = initFirebaseAndAuth;
+    </script>
+</body>
+</html>
